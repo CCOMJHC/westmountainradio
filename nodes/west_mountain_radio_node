@@ -4,55 +4,55 @@
 # Centeer for Coastal and Ocean Mapping
 # University of New Hamsphire
 
-#import _mypath
 import sys
 import rospy
-from westmountainradio.msg import circuit
-import WestMountainRadio.westmountainradio as wmr
+from westmountainradio.msg import Circuit
+import westmountainradio.westmountainradio as wmr
 
 if sys.argv.__len__() == 1:
-    wmr12_address = '192.168.100.112'
+    wmr12_address = '192.168.100.212'
     wmr24_address = '192.168.100.224'
 
 def run():
     
-    pub = rospy.Publisher('westmountainradio',circuit,queue_size = 1000)
+    pub = rospy.Publisher('westmountainradio',Circuit,queue_size = 1000)
     rospy.init_node('publisher',anonymous=True)
-    rate = rospy.Rate(1)
-    
+    rate = rospy.Rate(10)
+    seq = 0    
     while not rospy.is_shutdown():
         circuits = get_circuit_data()
-        
+        seq = seq + 1
         for c in circuits:
-            C = circuit.circuit
-            #C.Header.timestamp = rospy.get_time()
-            C.Header.stamp.secs = int(c.updatetime)
-            C.Header.stamp.nsecs = c.updatetime - int(c.updatetime)
-            C.name = c.cktnmae
+            C = Circuit()
+            C.header.stamp = rospy.get_time()
+            C.header.seq = seq
+            C.name = c.cktname
             C.status = c.status == 1
             C.voltage= float(c.voltage)
             C.current = float(c.current)
             rospy.loginfo(C)
-            pub.publish(circuit)
+            pub.publish(C)
 
         rate.sleep()        
     
 def get_circuit_data():
-    print wmr
+    print("Getting circuit data...")
     wmr12 = wmr.west_mountain_radio(wmr12_address)        
     wmr24 = wmr.west_mountain_radio(wmr24_address)
-
     wmr24.get_names()
     wmr24.get_status()
-    #wmr24.print_status()
-    #wmr24.print_log(logfile)
     wmr12.get_names()
     wmr12.get_status()
-    #wmr12.print_status()
-    #wmr12.print_log(logfile)
 
-    return wmr24.circuits + wmr12.circuits
-        
+    if wmr24.circuits is None and wmr12.circuits is None:
+        return None
+    elif wmr24.circuits is not None and wmr12.circuits is None:
+        return wmr24.circuits
+    elif wmr24.circuits is None and wmr12.circuits is not None:
+        return wmr12.circuits
+    else:
+        return wmr24.circuits + wmr12.circuits
+ 
 if __name__ == '__main__':
     
     try: 
