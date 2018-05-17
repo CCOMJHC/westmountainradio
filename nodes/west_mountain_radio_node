@@ -11,9 +11,8 @@ import rosbag
 from westmountainradio.msg import Circuit
 import westmountainradio.westmountainradio as wmr
 
-if sys.argv.__len__() == 1:
-    wmr12_address = '192.168.100.212'
-    wmr24_address = '192.168.100.224'
+wmr12_address = '192.168.100.212'
+wmr24_address = '192.168.100.224'
 
 def run():
     
