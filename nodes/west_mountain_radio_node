@@ -24,7 +24,7 @@ def run():
         seq = seq + 1
         for c in circuits:
             C = Circuit()
-            C.header.stamp = rospy.get_time()
+            C.header.stamp = rospy.get_rostime()
             C.header.seq = seq
             C.name = c.cktname
             C.status = c.status == 1
@@ -40,8 +40,8 @@ def get_circuit_data():
     wmr12 = wmr.west_mountain_radio(wmr12_address)        
     wmr24 = wmr.west_mountain_radio(wmr24_address)
     wmr24.get_names()
-    wmr24.get_status()
     wmr12.get_names()
+    wmr24.get_status()
     wmr12.get_status()
 
     if wmr24.circuits is None and wmr12.circuits is None:
