@@ -5,7 +5,9 @@
 # University of New Hamsphire
 
 import sys
+import datetime
 import rospy
+import rosbag
 from westmountainradio.msg import Circuit
 import westmountainradio.westmountainradio as wmr
 
@@ -17,7 +19,10 @@ def run():
     
     pub = rospy.Publisher('westmountainradio',Circuit,queue_size = 1000)
     rospy.init_node('publisher',anonymous=True)
-    rate = rospy.Rate(10)
+    timestamp = datetime.datetime.utcfromtimestamp(rospy.Time.now().to_time()).isoformat()
+    bag = rosbag.Bag('nodes/westmountainradio_circuits_'+('-'.join(timestamp.split(':')))+'.bag', 'w', rosbag.Compression.BZ2)
+
+    rate = rospy.Rate(0.5)
     seq = 0    
     while not rospy.is_shutdown():
         circuits = get_circuit_data()
@@ -27,11 +32,12 @@ def run():
             C.header.stamp = rospy.get_rostime()
             C.header.seq = seq
             C.name = c.cktname
-            C.status = c.status == 1
+            C.status = c.status == "1"
             C.voltage= float(c.voltage)
             C.current = float(c.current)
             rospy.loginfo(C)
             pub.publish(C)
+            bag.write('/westmountainradio',C)
 
         rate.sleep()        
     
